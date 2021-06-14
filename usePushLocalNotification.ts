@@ -1,9 +1,13 @@
 import PushNotificationIOS from '@react-native-community/push-notification-ios';
+import {NavigationContainerRef} from '@react-navigation/native';
+import {RefObject} from 'react';
 import {Platform} from 'react-native';
-import PushNotification from 'react-native-push-notification';
+import PushNotification, {
+  PushNotificationScheduleObject,
+} from 'react-native-push-notification';
 
 export const useNotificationHook = () => {
-  const initialize = () => {
+  const initialize = (navigator: RefObject<NavigationContainerRef>) => {
     PushNotification.configure({
       // (optional) Called when Token is generated (iOS and Android)
       onRegister: token => {
@@ -13,6 +17,11 @@ export const useNotificationHook = () => {
       // (required) Called when a remote is received or opened, or local notification is opened
       onNotification: notification => {
         console.log('NOTIFICATION:', notification);
+        const {data} = notification;
+        const {navigation} = data;
+        if (navigation) {
+          navigator.current?.navigate(navigation);
+        }
         // process the notification
 
         // (required) Called when a remote is received or opened, or local notification is opened
@@ -69,7 +78,7 @@ export const useNotificationHook = () => {
     return null;
   };
 
-  const pushNotification = () => {
+  const pushNotification = (option: Record<string, any>) => {
     PushNotification.localNotification({
       /* Android Only Properties */
       channelId: 'default-channel-id', // (required) channelId, if the channel doesn't exist, notification will not trigger.
@@ -117,11 +126,13 @@ export const useNotificationHook = () => {
       playSound: false, // (optional) default: true
       soundName: 'default', // (optional) Sound to play when the notification is shown. Value of 'default' plays the default sound. It can be set to a custom sound such as 'android.resource://com.xyz/raw/my_sound'. It will look for the 'my_sound' audio file in 'res/raw' directory and play it. default: 'default' (default sound is played)
       number: 10, // (optional) Valid 32 bit integer specified as string. default: none (Cannot be zero)
+      ...option,
     });
   };
 
-  const schedule = option => {
+  const schedule = (option: Record<string, any>) => {
     PushNotification.localNotificationSchedule({
+      message: '',
       date: new Date(), // in 30 secs
       id: 1,
       channelId: 'default-channel-id',
@@ -137,12 +148,11 @@ export const useNotificationHook = () => {
 
       playSound: true, // (optional) default: true
       soundName: 'default', // (optional) Sound to play when the notification is shown. Value of 'default' plays the default sound. It can be set to a custom sound such as 'android.resource://com.xyz/raw/my_sound'. It will look for the 'my_sound' audio file in 'res/raw' directory and play it. default: 'default' (default sound is played)
-
       ...option,
     });
   };
 
-  const removeNotification = id => {
+  const removeNotification = (id: any) => {
     PushNotification.cancelLocalNotifications({id});
   };
 
